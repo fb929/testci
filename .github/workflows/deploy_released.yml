@@ -1,0 +1,19 @@
+---
+name: deploy_released
+
+on:
+  release:
+    types:
+      - released
+
+jobs:
+  build:
+    runs-on: ubuntu
+    steps:
+      - uses: actions/checkout@v2
+      - name: Dump env
+        run: env | sort
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
