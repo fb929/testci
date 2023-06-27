@@ -20,5 +20,5 @@ jobs:
       - name: test
         run: |
           echo "date=$(date +%Y%m%d-%H%M%S)"
-          echo "git info ${{ GITHUB_EVENT_NAME }}_${{ GITHUB_REF_NAME }}"
-          echo ${{ GITHUB_EVENT_NAME }}
+          echo "git info ${GITHUB_EVENT_NAME}_${GITHUB_REF_NAME}"
+          echo $GITHUB_EVENT_NAME
