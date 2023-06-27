@@ -17,3 +17,8 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
+      - name: test
+        run: |
+          echo "date=$(date +%Y%m%d-%H%M%S)"
+          echo "git info ${{ GITHUB_EVENT_NAME }}_${{ GITHUB_REF_NAME }}"
+          echo ${{ GITHUB_EVENT_NAME }}
