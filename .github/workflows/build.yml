@@ -1,0 +1,24 @@
+on:
+  push:
+    branches:
+      - main
+
+name: testgo
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version:
+          - '1.21'
+    env:
+      GOPRIVATE: github.com/anyproto
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '${{ matrix.go-version }}'
+          check-latest: true
+      - name: debug
+        run: go version
