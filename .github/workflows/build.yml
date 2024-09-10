@@ -29,7 +29,7 @@ jobs:
         run: |
           if [[ "${{ github.event.inputs.nightly-mode }}" == "true" ]]; then
             echo "NIGHTLY_MODE=true" >> $GITHUB_ENV
-          elif [[ "${{ github.ref }}" == "nightly-ci-test" ]]; then
+          elif [[ "${{ github.ref }}" == "refs/heads/nightly-ci-test" ]]; then
             echo "NIGHTLY_MODE=true" >> $GITHUB_ENV
           elif [[ "github.event_name" == "schedule" ]]; then
             echo "NIGHTLY_MODE=true" >> $GITHUB_ENV
