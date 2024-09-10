@@ -20,12 +20,17 @@ jobs:
 
       - name: Update version channel to nightly
         run: |
-          # Extract the current version
-          VERSION=$(jq -r '.version' package.json)
-          # Replace 'alpha' with 'nightly' in the version string
-          UPDATED_VERSION=$(echo $VERSION | sed 's/alpha/nightly/')
-          # Update package.json with the new version
-          jq --arg version "$UPDATED_VERSION" '.version = $version' package.json > tmp.$$.json && mv tmp.$$.json package.json
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            # For Windows (PowerShell commands)
+            $version = (jq -r '.version' package.json)
+            $updated_version = $version -replace "alpha", "nightly"
+            (Get-Content package.json) -replace '"version": "'+$version+'"', '"version": "'+$updated_version+'"' | Set-Content package.json
+          else
+            # For Linux/macOS (Bash commands)
+            VERSION=$(jq -r '.version' package.json)
+            UPDATED_VERSION=$(echo $VERSION | sed 's/alpha/nightly/')
+            jq --arg version "$UPDATED_VERSION" '.version = $version' package.json > tmp.$$.json && mv tmp.$$.json package.json
+          fi
 
       - name: debug
         run: cat package.json
