@@ -27,5 +27,16 @@ jobs:
       - name: Set nightly mode for scheduled jobs
         shell: bash
         run: |
-          echo EVENT_NAME=${{ github.event_name }}
-          echo BRANCH=${{ github.ref }}
+          if [[ "${{ github.event.inputs.nightly-mode }}" == "true" ]]; then
+            echo "NIGHTLY_MODE=true" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == "nightly-ci-test" ]]; then
+            echo "NIGHTLY_MODE=true" >> $GITHUB_ENV
+          elif [[ "github.event_name" == "schedule" ]]; then
+            echo "NIGHTLY_MODE=true" >> $GITHUB_ENV
+          else
+            echo "NIGHTLY_MODE=false" >> $GITHUB_ENV
+          fi
+
+      - name: debug
+        shell: bash
+        run: echo NIGHTLY_MODE=${{ env.NIGHTLY_MODE }}
