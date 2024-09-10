@@ -3,22 +3,30 @@ on:
     branches:
       - main
 
-name: testgo
+name: test build
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        go-version:
-          - '1.21'
-    env:
-      GOPRIVATE: github.com/anyproto
+        os:
+          - macos-12
+          - ubuntu-latest
+          - windows-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version: '${{ matrix.go-version }}'
-          check-latest: true
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Update version channel to nightly
+        run: |
+          # Extract the current version
+          VERSION=$(jq -r '.version' package.json)
+          # Replace 'alpha' with 'nightly' in the version string
+          UPDATED_VERSION=$(echo $VERSION | sed 's/alpha/nightly/')
+          # Update package.json with the new version
+          jq --arg version "$UPDATED_VERSION" '.version = $version' package.json > tmp.$$.json && mv tmp.$$.json package.json
+
       - name: debug
-        run: go version
+        run: cat package.json
+
