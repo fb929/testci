@@ -1,6 +1,0 @@
-{
-	"name": "testname",
-	"version": "0.42.11-alpha",
-	"description": "test desc",
-	"main": "electron.js"
-}

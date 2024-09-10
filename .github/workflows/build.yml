@@ -1,37 +1,44 @@
+name: Release
+
 on:
   push:
+    tags:
+      - v*
     branches:
       - main
-
-name: test build
+      - nightly-ci-test
+  workflow_dispatch:
+    inputs:
+      nightly-mode:
+        description: 'Nightly build. Use staging network'
+        required: true
+        default: 'false'
+  schedule:
+    - cron: '0 0 * * *' # every day at midnight
 
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os:
-          - macos-12
-          - ubuntu-latest
-          - windows-latest
+        os: [macos-12, ubuntu-latest, windows-latest]
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Update version channel to nightly for Windows
-        if: matrix.os == 'windows-latest'
+      - name: Set nightly mode for scheduled jobs
+        if: github.event_name == 'schedule'
         run: |
-          $version = (jq -r '.version' package.json)
-          $updated_version = $version -replace "alpha", "nightly"
-          (Get-Content package.json) -replace '"version": "'+$version+'"', '"version": "'+$updated_version+'"' | Set-Content package.json
+          echo "NIGHTLY_MODE=true" >> ${{ runner.os == 'Windows' && 'env:GITHUB_ENV' || 'GITHUB_ENV' }}
 
-      - name: Update version channel to nightly for Unix
-        if: matrix.os != 'windows-latest'
+      - name: Set nightly mode for branch `nightly-ci-test`
+        if: github.ref == 'refs/heads/nightly-ci-test'
         run: |
-          VERSION=$(jq -r '.version' package.json)
-          UPDATED_VERSION=$(echo $VERSION | sed 's/alpha/nightly/')
-          jq --arg version "$UPDATED_VERSION" '.version = $version' package.json > tmp.$$.json && mv tmp.$$.json package.json
+          echo "NIGHTLY_MODE=true" >> ${{ runner.os == 'Windows' && 'env:GITHUB_ENV' || 'GITHUB_ENV' }}
 
-      - name: debug
-        run: cat package.json
+      - name: Set nightly mode for manual or tag-based jobs
+        if: github.event_name != 'schedule' && github.ref != 'refs/heads/nightly-ci-test'
+        run: |
+          echo "NIGHTLY_MODE=${{ github.event.inputs.nightly-mode }}" >> ${{ runner.os == 'Windows' && 'env:GITHUB_ENV' || 'GITHUB_ENV' }}
 
+      - name: Print nightly mode
+        run: |
+          echo "Nightly mode is set to ${{ runner.os == 'Windows' && 'env:NIGHTLY_MODE' || 'NIGHTLY_MODE' }}"
