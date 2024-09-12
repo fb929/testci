@@ -2,19 +2,15 @@ name: Release
 
 on:
   push:
-    tags:
-      - v*
-    branches:
-      - main
-      - nightly-ci-test
   workflow_dispatch:
     inputs:
-      nightly-mode:
-        description: 'Nightly build. Use staging network'
+      channel:
+        description: electron.builder channel
         required: true
-        default: 'false'
-  schedule:
-    - cron: '0 0 * * *' # every day at midnight
+        default: alpha
+        options:
+          - alpha
+          - beta
 
 jobs:
   build:
@@ -24,19 +20,11 @@ jobs:
         os: [macos-12, ubuntu-latest, windows-latest]
 
     steps:
-      - name: Set nightly mode for scheduled jobs
+      - name: Nightly mode settings
         shell: bash
         run: |
-          if [[ "${{ github.event.inputs.nightly-mode }}" == "true" ]]; then
-            echo "NIGHTLY_MODE=true" >> $GITHUB_ENV
-          elif [[ "${{ github.ref }}" == "nightly-ci-test" ]]; then
-            echo "NIGHTLY_MODE=true" >> $GITHUB_ENV
-          elif [[ "github.event_name" == "schedule" ]]; then
-            echo "NIGHTLY_MODE=true" >> $GITHUB_ENV
-          else
-            echo "NIGHTLY_MODE=false" >> $GITHUB_ENV
-          fi
+          jq --tab --arg date "$(TZ=Europe/Berlin date +%Y%m%d%H%M)" '.version |= (. | split(".") | .[0] + "." + .[1] + "." + $date+"-${{ github.event.inputs.nightly-mode }}")' package.json > temp.json && mv temp.json package.json
 
       - name: debug
         shell: bash
-        run: echo NIGHTLY_MODE=${{ env.NIGHTLY_MODE }}
+        run: cat package.json
