@@ -15,10 +15,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v1
         with:
-          node-version: '20'
+          node-version: 20.9.0
 
       - name: Install Webpack
         run: npm install --save-dev webpack-cli --legacy-peer-deps
