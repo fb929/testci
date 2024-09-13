@@ -22,6 +22,7 @@ jobs:
 
     steps:
       - name: Set environment variables
+        shell: bash
         run: |
           if [[ -z "${{ github.event.inputs.channel }}" ]]; then
             echo "CHANNEL=alpha" >> $GITHUB_ENV
