@@ -72,3 +72,8 @@ jobs:
         shell: bash
         run: |
           cat package-nightly-new.json
+
+      - name: debug diff
+        shell: bash
+        run: |
+          diff -u package-nightly.json package-nightly-new.json
