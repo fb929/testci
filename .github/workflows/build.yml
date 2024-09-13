@@ -45,14 +45,25 @@ jobs:
       - name: Nightly mode settings
         shell: bash
         run: |
-          jq '.name = "anytype-dev" |
+          jq '(
+              .name = "anytype-dev" |
               .version = "0.43.100-alpha" |
               .description = "Anytype Nightly" |
               .build.appId = "com.anytype.anytype-dev" |
               .build.productName = "Anytype Nightly" |
-              (.build.publish[]? | select(.provider == "generic") | .provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%") |
-              .win.publish[]? |= (.provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%") |
-              .linux.publish[]? |= (.provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%")' package.json > package-nightly-new.json
+              if .build.publish then
+                  (.build.publish[] |= if .provider == "generic" then
+                      .provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%"
+                  else . end)
+              else . end |
+              if .win.publish then
+                  (.win.publish[] |= .provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%")
+              else . end |
+              if .linux.publish then
+                  (.linux.publish[] |= .provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%")
+              else . end
+          )' package.json > package-nightly-new.json
+
 
       - name: debug cat package-nightly-new.json
         shell: bash
