@@ -23,6 +23,10 @@ jobs:
       - name: Install Webpack
         run: npm install --save-dev webpack-cli --legacy-peer-deps
 
+      - name: Setup distutils
+        if: matrix.os != 'windows-latest'
+        run: pip install setuptools
+
       - name: Build Electron app
         uses: samuelmeuli/action-electron-builder@v1
         with:
