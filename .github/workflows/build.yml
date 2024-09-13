@@ -37,11 +37,25 @@ jobs:
         shell: bash
         run: echo ${{ env.CHANNEL }}
 
+      #- name: Nightly mode settings
+      #  shell: bash
+      #  run: |
+      #    jq --tab --arg date "$(TZ=Europe/Berlin date +%Y%m%d%H%M)" '.version |= (. | split(".") | .[0] + "." + .[1] + "." + $date+"-${{ env.CHANNEL }}")' package.json > temp.json && mv temp.json package.json
+
       - name: Nightly mode settings
         shell: bash
         run: |
-          jq --tab --arg date "$(TZ=Europe/Berlin date +%Y%m%d%H%M)" '.version |= (. | split(".") | .[0] + "." + .[1] + "." + $date+"-${{ env.CHANNEL }}")' package.json > temp.json && mv temp.json package.json
+          jq '.name = "anytype-dev" |
+              .version = "0.43.100-alpha" |
+              .description = "Anytype Nightly" |
+              .build.appId = "com.anytype.anytype-dev" |
+              .build.productName = "Anytype Nightly" |
+              (.build.publish[] | select(.provider == "generic") | .provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%") |
+              .win.publish[] |= (.provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%") |
+              .linux.publish[] |= (.provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%")' package.json > package-nightly-new.json
 
       - name: debug
         shell: bash
-        run: cat package.json
+        run: |
+          diff -u package-nightly.json package-nightly-new.json
+          cat package-nightly-new.json
