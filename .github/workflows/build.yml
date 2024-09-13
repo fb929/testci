@@ -8,6 +8,7 @@ on:
         description: electron.builder channel
         required: true
         default: alpha
+        type: choice
         options:
           - alpha
           - beta
