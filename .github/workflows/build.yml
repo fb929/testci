@@ -76,4 +76,4 @@ jobs:
       - name: debug diff
         shell: bash
         run: |
-          diff -u package-nightly.json package-nightly-new.json
+          diff -u package-nightly.json package-nightly-new.json || true
