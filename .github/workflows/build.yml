@@ -24,10 +24,14 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
 
+      - name: debug vars
+        shell: bash
+        run: echo ${{ github.event.inputs.channel }}
+
       - name: Nightly mode settings
         shell: bash
         run: |
-          jq --tab --arg date "$(TZ=Europe/Berlin date +%Y%m%d%H%M)" '.version |= (. | split(".") | .[0] + "." + .[1] + "." + $date+"-${{ github.event.inputs.nightly-mode }}")' package.json > temp.json && mv temp.json package.json
+          jq --tab --arg date "$(TZ=Europe/Berlin date +%Y%m%d%H%M)" '.version |= (. | split(".") | .[0] + "." + .[1] + "." + $date+"-${{ github.event.inputs.channel }}")' package.json > temp.json && mv temp.json package.json
 
       - name: debug
         shell: bash
