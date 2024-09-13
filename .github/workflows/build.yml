@@ -45,9 +45,12 @@ jobs:
       - name: Nightly mode settings
         shell: bash
         run: |
-          jq --tab '
+          jq \
+            --tab \
+            --arg date "$(TZ=Europe/Berlin date +%Y%m%d%H%M)" \
+            '
             .name = "anytype-dev" |
-            .version = "0.43.100-alpha" |
+            .version |= (. | split(".") | .[0] + "." + .[1] + "." + $date + "-${{ env.CHANNEL }}") |
             .description = "Anytype Nightly" |
             .build.appId = "com.anytype.anytype-dev" |
             .build.productName = "Anytype Nightly" |
