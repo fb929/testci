@@ -28,7 +28,7 @@ jobs:
         with:
           build-script-name: build
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{secrets.TOKEN}}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
