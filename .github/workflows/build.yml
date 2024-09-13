@@ -10,7 +10,13 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-14
+          #- ubuntu-latest
+          #- windows-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -21,7 +27,7 @@ jobs:
           node-version: 20.9.0
 
       - name: Set up Python 3.11
-        if: startsWith(runner.os, 'macos-')
+        if: startsWith(matrix.os, 'macos-')
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
