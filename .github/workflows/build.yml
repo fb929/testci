@@ -32,8 +32,13 @@ jobs:
           DEBUG: electron-builder
           USE_HARD_LINKS: false
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: electron-build
-          path: dist/
+      - name: debug
+        run: |
+          ls -al artifacts/
+          echo '123231312'
+          ls -al dist/
+#      - name: Upload build artifacts
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: electron-build
+#          path: dist/
