@@ -21,17 +21,25 @@ jobs:
         os: [macos-12, ubuntu-latest, windows-latest]
 
     steps:
+      - name: Set environment variables
+        run: |
+          if [[ -z "${{ github.event.inputs.channel }}" ]]; then
+            echo "CHANNEL=alpha" >> $GITHUB_ENV
+          else
+            echo "CHANNEL=${{ github.event.inputs.channel }}" >> $GITHUB_ENV
+          fi
+
       - name: Check out Git repository
         uses: actions/checkout@v4
 
       - name: debug vars
         shell: bash
-        run: echo ${{ inputs.channel }}
+        run: echo ${{ env.CHANNEL }}
 
       - name: Nightly mode settings
         shell: bash
         run: |
-          jq --tab --arg date "$(TZ=Europe/Berlin date +%Y%m%d%H%M)" '.version |= (. | split(".") | .[0] + "." + .[1] + "." + $date+"-${{ github.event.inputs.channel }}")' package.json > temp.json && mv temp.json package.json
+          jq --tab --arg date "$(TZ=Europe/Berlin date +%Y%m%d%H%M)" '.version |= (. | split(".") | .[0] + "." + .[1] + "." + $date+"-${{ env.CHANNEL }}")' package.json > temp.json && mv temp.json package.json
 
       - name: debug
         shell: bash
