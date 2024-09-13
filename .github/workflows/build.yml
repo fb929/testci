@@ -20,14 +20,17 @@ jobs:
         with:
           node-version: 20.9.0
 
+      - name: Set up Python 3.11
+        if: startsWith(runner.os, 'macos-')
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Verify Python version
+        run: python --version
+
       - name: Install Webpack
         run: npm install --save-dev webpack-cli --legacy-peer-deps
-
-      - name: Setup distutils
-        if: matrix.os != 'windows-latest'
-        run: |
-          pip install setuptools
-          pip install --upgrade setuptools
 
       - name: Build Electron app
         uses: samuelmeuli/action-electron-builder@v1
