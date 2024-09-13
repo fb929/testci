@@ -35,8 +35,10 @@ jobs:
       - name: debug
         run: |
           ls -al ./
-          echo '123231312'
+          echo '######'
           ls -al dist/
+          echo '######'
+          du -hscx dist/*
 #      - name: Upload build artifacts
 #        uses: actions/upload-artifact@v3
 #        with:
