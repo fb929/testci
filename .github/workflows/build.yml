@@ -26,7 +26,7 @@ jobs:
 
       - name: debug vars
         shell: bash
-        run: echo ${{ github.event.inputs.channel }}
+        run: echo ${{ inputs.channel }}
 
       - name: Nightly mode settings
         shell: bash
