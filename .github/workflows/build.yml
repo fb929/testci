@@ -34,7 +34,7 @@ jobs:
 
       - name: debug
         run: |
-          ls -al artifacts/
+          ls -al ./
           echo '123231312'
           ls -al dist/
 #      - name: Upload build artifacts
