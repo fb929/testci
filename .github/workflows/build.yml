@@ -23,9 +23,11 @@ jobs:
       - name: Build Electron app
         uses: samuelmeuli/action-electron-builder@v1
         with:
-          build-script-name: build
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          args: --arm64 --x64 --publish always
         env:
-          github_token: ${{secrets.TOKEN}}
+          DEBUG: electron-builder
+          USE_HARD_LINKS: false
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
