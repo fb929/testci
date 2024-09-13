@@ -112,9 +112,61 @@
     "swiper": "^11.0.3"
   },
   "build": {
+    "npmRebuild": true,
+    "buildDependenciesFromSource": true,
+    "generateUpdatesFilesForAllChannels": true,
     "appId": "com.example.electron-app",
+    "compression": "normal",
+    "asarUnpack": [
+      "dist/index.html",
+      "dist/lib",
+      "dist/anytypeHelper",
+      "dist/anytypeHelper.exe",
+      "dist/nativeMessagingHost.exe",
+      "dist/nativeMessagingHost",
+      "dist/font/**/*",
+      "dist/workers/**/*",
+      "dist/*.node",
+      "dist/cmaps/**/*",
+      "dist/embed/**/*",
+      "dist/challenge/**/*",
+      "dist/img/**/*",
+      "dist/css/**/*",
+      "dist/js/**/*",
+      "electron/img/*",
+      "electron/js/preload.js",
+      "build",
+      "node_modules/keytar/build/Release/keytar.node",
+      "node_modules/lodash.isequal",
+      "node_modules/read-chunk",
+      "node_modules/@electron/remote",
+      "node_modules/with-open-file",
+      "node_modules/p-try",
+      "node_modules/p-finally",
+      "node_modules/file-type",
+      "node_modules/regedit",
+      "node_modules/mime-types"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/regedit/vbs",
+        "to": "regedit/vbs",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "dmg": {
+      "sign": false
+    },
     "mac": {
-      "target": "dmg"
+      "target": {
+        "target": "default",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
     }
   }
 }
