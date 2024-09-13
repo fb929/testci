@@ -50,9 +50,9 @@ jobs:
               .description = "Anytype Nightly" |
               .build.appId = "com.anytype.anytype-dev" |
               .build.productName = "Anytype Nightly" |
-              (.build.publish[] | select(.provider == "generic") | .provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%") |
-              .win.publish[] |= (.provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%") |
-              .linux.publish[] |= (.provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%")' package.json > package-nightly-new.json
+              (.build.publish[]? | select(.provider == "generic") | .provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%") |
+              .win.publish[]? |= (.provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%") |
+              .linux.publish[]? |= (.provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%")' package.json > package-nightly-new.json
 
       - name: debug
         shell: bash
