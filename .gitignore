@@ -1,0 +1,6 @@
+DS_Store
+.project
+.settings/
+node_modules/
+.idea
+electron/env.json
