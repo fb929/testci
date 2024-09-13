@@ -54,8 +54,7 @@ jobs:
               .win.publish[]? |= (.provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%") |
               .linux.publish[]? |= (.provider = "s3" | .bucket = "%NIGHTLY_AWS_S3_BUCKET%" | .region = "%NIGHTLY_AWS_REGION%")' package.json > package-nightly-new.json
 
-      - name: debug
+      - name: debug cat package-nightly-new.json
         shell: bash
         run: |
-          diff -u package-nightly.json package-nightly-new.json
           cat package-nightly-new.json
