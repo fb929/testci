@@ -14,10 +14,17 @@ jobs:
     strategy:
       matrix:
         os:
+          - macos-12
+          - macos-13
           - macos-14
+          - macos-15
           - ubuntu-latest
           - windows-latest
     steps:
+      - name: test macos
+        if: startsWith(matrix.os, 'macos') && (matrix.os == 'macos-14' || matrix.os > 'macos-14')
+        run: echo ${{ matrix.os }}
+
       - name: test startsWith macos
         if: ${{ startsWith(matrix.os, 'macos-') }}
         run: echo "is macos"
