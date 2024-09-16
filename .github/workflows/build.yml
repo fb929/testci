@@ -15,66 +15,74 @@ jobs:
       matrix:
         os:
           - macos-14
-          #- ubuntu-latest
-          #- windows-latest
+          - ubuntu-latest
+          - windows-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: test startsWith macos
+        if: ${{ startsWith(matrix.os, 'macos-') }}
+        run: echo "is macos"
 
-      - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v1
-        with:
-          node-version: 20.9.0
+      - name: test startsWith not macos
+        if: ${{ !startsWith(matrix.os, 'macos-') }}
+        run: echo "is not macos"
 
-      - name: Set up Python 3.11
-        if: startsWith(matrix.os, 'macos-')
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Verify Python version
-        run: python --version
-
-      - name: Install Webpack
-        run: npm install --save-dev webpack-cli --legacy-peer-deps
-
-      - name: Build Electron app
-        uses: samuelmeuli/action-electron-builder@v1
-        with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
-          args: --arm64 --x64 --publish always
-        env:
-          DEBUG: electron-builder
-          USE_HARD_LINKS: false
-
-      - name: Make artifacts dir
-        run: |
-          mkdir -p artifacts
-
-      - name: Cleanup artifacts
-        if: matrix.os != 'windows-latest'
-        run: |
-          mv dist/*.{zip,dmg,deb,AppImage,exe,snap,rpm,tar.gz} artifacts || true
-
-      - name: Cleanup artifacts Windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          rm dist/anytypeHelper.exe
-          rm dist/nativeMessagingHost.exe
-          mv dist/*.exe artifacts
-
-      - name: debug
-        run: |
-          ls -al ./
-          echo '######'
-          ls -al dist/
-          echo '######'
-          du -hscx dist/*
-          echo '######'
-          du -hscx artifacts/
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: electron-build
-          path: artifacts
+#      - name: Checkout repository
+#        uses: actions/checkout@v3
+#
+#      - name: Install Node.js, NPM and Yarn
+#        uses: actions/setup-node@v1
+#        with:
+#          node-version: 20.9.0
+#
+#      - name: Set up Python 3.11
+#        if: ${{ startsWith(matrix.os, 'macos-') }}
+#        uses: actions/setup-python@v4
+#        with:
+#          python-version: '3.11'
+#
+#      - name: Verify Python version
+#        run: python --version
+#
+#      - name: Install Webpack
+#        run: npm install --save-dev webpack-cli --legacy-peer-deps
+#
+#      - name: Build Electron app
+#        uses: samuelmeuli/action-electron-builder@v1
+#        with:
+#          github_token: ${{secrets.GITHUB_TOKEN}}
+#          args: --arm64 --x64 --publish always
+#        env:
+#          DEBUG: electron-builder
+#          USE_HARD_LINKS: false
+#
+#      - name: Make artifacts dir
+#        run: |
+#          mkdir -p artifacts
+#
+#      - name: Cleanup artifacts
+#        if: matrix.os != 'windows-latest'
+#        run: |
+#          mv dist/*.{zip,dmg,deb,AppImage,exe,snap,rpm,tar.gz} artifacts || true
+#
+#      - name: Cleanup artifacts Windows
+#        if: matrix.os == 'windows-latest'
+#        run: |
+#          rm dist/anytypeHelper.exe
+#          rm dist/nativeMessagingHost.exe
+#          mv dist/*.exe artifacts
+#
+#      - name: debug
+#        run: |
+#          ls -al ./
+#          echo '######'
+#          ls -al dist/
+#          echo '######'
+#          du -hscx dist/*
+#          echo '######'
+#          du -hscx artifacts/
+#
+#      - name: Upload build artifacts
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: electron-build
+#          path: artifacts
