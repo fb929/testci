@@ -14,32 +14,30 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-13
           - macos-14
-          - macos-15
           - ubuntu-latest
           - windows-latest
     steps:
-      - name: test macos
-        if: startsWith(matrix.os, 'macos') && (matrix.os == 'macos-14' || matrix.os > 'macos-14')
-        run: echo ${{ matrix.os }}
-
-      - name: test startsWith macos
-        if: ${{ startsWith(matrix.os, 'macos-') }}
-        run: echo "is macos"
-
-      - name: test startsWith not macos
-        if: ${{ !startsWith(matrix.os, 'macos-') }}
-        run: echo "is not macos"
-
-#      - name: Checkout repository
-#        uses: actions/checkout@v3
+#      - name: test macos
+#        if: startsWith(matrix.os, 'macos') && (matrix.os == 'macos-14' || matrix.os > 'macos-14')
+#        run: echo ${{ matrix.os }}
 #
-#      - name: Install Node.js, NPM and Yarn
-#        uses: actions/setup-node@v1
-#        with:
-#          node-version: 20.9.0
+#      - name: test startsWith macos
+#        if: ${{ startsWith(matrix.os, 'macos-') }}
+#        run: echo "is macos"
 #
+#      - name: test startsWith not macos
+#        if: ${{ !startsWith(matrix.os, 'macos-') }}
+#        run: echo "is not macos"
+
+      - name: Checkout repository
+        uses: actions/checkout@v1
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20.9.0
+
 #      - name: Set up Python 3.11
 #        if: ${{ startsWith(matrix.os, 'macos-') }}
 #        uses: actions/setup-python@v4
