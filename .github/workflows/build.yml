@@ -125,7 +125,7 @@ jobs:
         with:
           tag_name: v${{ steps.nightly_info.outputs.version }}          # новый тег, которого ещё нет
           target_commitish: ${{ github.sha }}                           # текущий коммит
-          name: Release ${{ steps.nightly_info.outputs.version }}       # заголовок релиза
+          #name: Release ${{ steps.nightly_info.outputs.version }}       # заголовок релиза
           prerelease: true
           make_latest: false
           generate_release_notes: true
