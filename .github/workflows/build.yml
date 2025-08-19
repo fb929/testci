@@ -1,9 +1,11 @@
 name: Build Electron App
 
+#on:
+#  push:
+#    branches:
+#      - main
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: 'write'
@@ -15,8 +17,8 @@ jobs:
       matrix:
         os:
           - macos-14
-          - ubuntu-latest
-          - windows-latest
+          #- ubuntu-latest
+          #- windows-latest
     steps:
 #      - name: test macos
 #        if: startsWith(matrix.os, 'macos') && (matrix.os == 'macos-14' || matrix.os > 'macos-14')
@@ -31,7 +33,7 @@ jobs:
 #        run: echo "is not macos"
 
       - name: Checkout repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
 
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@v4
@@ -90,3 +92,13 @@ jobs:
 #        with:
 #          name: electron-build
 #          path: artifacts
+
+      - name: Gets latest created release info
+        id: latest_release_info
+        uses: jossef/action-latest-release-info
+
+      - name: Use release information
+        run: |
+          echo "Latest release tag: ${{ steps.latest_release_info.outputs.tag_name }}"
+          echo "Latest release URL: ${{ steps.latest_release_info.outputs.html_url }}"
+          echo "Is draft: ${{ steps.latest_release_info.outputs.draft }}"
