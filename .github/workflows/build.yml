@@ -93,12 +93,26 @@ jobs:
 #          name: electron-build
 #          path: artifacts
 
-      - name: Gets latest created release info
+      - name: Get latest release via API
         id: latest_release_info
-        uses: jossef/action-latest-release-info@v1.2.2
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const latest = await github.rest.repos.getLatestRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            })
+            core.setOutput("tag_name", latest.data.tag_name)
+
+      - name: Compute nightly version
+        id: nightly_info
+        run: |
+          BASE=${{ steps.latest_release_info.outputs.tag_name }}
+          BASE=${BASE#v}
+          TS=$(date -u +"%Y%m%d%H%M%S")
+          echo "version=${BASE}-nightly-builds-${TS}" >> $GITHUB_OUTPUT
 
       - name: Use release information
         run: |
           echo "Latest release tag: ${{ steps.latest_release_info.outputs.tag_name }}"
-          echo "Latest release URL: ${{ steps.latest_release_info.outputs.html_url }}"
-          echo "Is draft: ${{ steps.latest_release_info.outputs.draft }}"
+          echo "Nightly version: ${{ steps.nightly_info.outputs.version }}"
