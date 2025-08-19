@@ -1,4 +1,4 @@
-name: Build Electron App
+name: Build
 
 #on:
 #  push:
@@ -110,10 +110,8 @@ jobs:
       - name: Compute nightly version
         id: nightly_info
         run: |
-          BASE=${{ steps.latest_release_info.outputs.tag_name }}
-          BASE=${BASE#v}
           TS=$(date -u +"%Y%m%d%H%M%S")
-          echo "version=${BASE}-nightly-builds-${TS}" >> $GITHUB_OUTPUT
+          echo "version=${{ steps.latest_release_info.outputs.tag_name }}-nightly-${TS}" >> $GITHUB_OUTPUT
 
       - name: Use release information
         run: |
@@ -122,14 +120,13 @@ jobs:
 
       - name: Create GitHub Release from current commit (prerelease)
         uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           tag_name: v${{ steps.nightly_info.outputs.version }}          # новый тег, которого ещё нет
           target_commitish: ${{ github.sha }}                           # текущий коммит
-          #name: Release ${{ steps.nightly_info.outputs.version }}       # заголовок релиза
           prerelease: true
           make_latest: false
           generate_release_notes: true
           files: |
             build.txt
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
