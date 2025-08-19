@@ -123,8 +123,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          tag_name: v${{ steps.nightly_info.outputs.version }}          # новый тег, которого ещё нет
-          target_commitish: ${{ github.sha }}                           # текущий коммит
+          tag_name: ${{ steps.nightly_info.outputs.version }} # create new tag
+          target_commitish: ${{ github.sha }}                 # set current commit for new tag
           prerelease: true
           make_latest: false
           generate_release_notes: true
