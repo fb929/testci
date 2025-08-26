@@ -27,7 +27,7 @@ jobs:
         run: |
           set -euo pipefail
           DATE=$(date -u +'%Y%m%d')
-          PREFIX="v0.44.0-nightly.${DATE}"
+          PREFIX="v1.2.3-nightly.${DATE}"
 
           # Get the number of existing tags for today
           COUNT=$(gh api "/repos/${{ github.repository }}/git/matching-refs/tags/$PREFIX" --jq 'length')
