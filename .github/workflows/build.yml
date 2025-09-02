@@ -102,8 +102,8 @@ jobs:
 
       - name: Debug
         run: |
-          echo "Nightly release is ${{ steps.anytype-heart-nightly-info.outputs.release }}"
-          MIDDLEWARE_VERSION=${{ steps.anytype-heart-nightly-info.outputs.release }}
+          echo "Nightly release is ${{ steps.anytype-heart-nightly-info.outputs.release_id }}"
+          MIDDLEWARE_VERSION=${{ steps.anytype-heart-nightly-info.outputs.release_id }}
           if [[ $MIDDLEWARE_VERSION =~ ^v[0-9] ]]; then
               MIDDLEWARE_VERSION="${MIDDLEWARE_VERSION#v}"
           fi
