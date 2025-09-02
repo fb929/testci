@@ -76,7 +76,6 @@ jobs:
       - uses: actions/github-script@v7
         id: anytype-heart-nightly-info
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const owner = 'anyproto';
             const repo = 'anytype-heart';
@@ -96,10 +95,6 @@ jobs:
             }
 
             core.setOutput('release_name', nightly.name);
-            core.setOutput('release_tag', nightly.tag_name);
-            core.setOutput('release_id', nightly.id.toString());
-            core.setOutput('html_url', nightly.html_url);
-            core.setOutput('prerelease', String(nightly.prerelease));
 
       - name: Debug
         shell: bash
