@@ -78,13 +78,27 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { data: releases } = await github.repos.listReleases({
-              owner: 'anyproto',
-              repo: 'anytype-heart',
-            });
-            const nightly = releases.find(r => r.tag_name.includes("nightly"));
-            core.setOutput("release", nightly.tag_name);
+            const owner = 'anyproto';
+            const repo = 'anytype-heart';
 
+            const releases = await github.paginate(
+              github.rest.repos.listReleases,
+              { owner, repo, per_page: 100 }
+            );
+
+            const nightly = releases.find(r =>
+              /nightly/i.test(r.tag_name || '') || /nightly/i.test(r.name || '')
+            );
+
+            if (!nightly) {
+              core.setFailed('Nightly release not found');
+              return;
+            }
+
+            core.setOutput('release_tag', nightly.tag_name);
+            core.setOutput('release_id', nightly.id.toString());
+            core.setOutput('html_url', nightly.html_url);
+            core.setOutput('prerelease', String(nightly.prerelease));
 
       - name: Debug
         run: |
