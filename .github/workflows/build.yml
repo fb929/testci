@@ -102,6 +102,7 @@ jobs:
             core.setOutput('prerelease', String(nightly.prerelease));
 
       - name: Debug
+        shell: bash
         run: |
           echo "Nightly release is ${{ steps.anytype-heart-nightly-info.outputs.release_name }}"
           MIDDLEWARE_VERSION=${{ steps.anytype-heart-nightly-info.outputs.release_name }}
