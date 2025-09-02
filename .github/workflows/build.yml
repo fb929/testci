@@ -16,9 +16,9 @@ jobs:
     strategy:
       matrix:
         os:
-          #- macos-14
+          - macos-14
           - ubuntu-latest
-          #- windows-latest
+          - windows-latest
     steps:
 #      - name: test macos
 #        if: startsWith(matrix.os, 'macos') && (matrix.os == 'macos-14' || matrix.os > 'macos-14')
