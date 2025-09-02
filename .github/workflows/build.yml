@@ -75,6 +75,8 @@ jobs:
 
       - uses: actions/github-script@v7
         id: anytype-heart-nightly-info
+				env:
+					GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             const { data: releases } = await github.repos.listReleases({
@@ -83,6 +85,7 @@ jobs:
             });
             const nightly = releases.find(r => r.tag_name.includes("nightly"));
             core.setOutput("release", nightly.tag_name);
+
 
       - name: Debug
         run: |
