@@ -95,6 +95,7 @@ jobs:
               return;
             }
 
+            core.setOutput('release_name', nightly.name);
             core.setOutput('release_tag', nightly.tag_name);
             core.setOutput('release_id', nightly.id.toString());
             core.setOutput('html_url', nightly.html_url);
@@ -102,8 +103,8 @@ jobs:
 
       - name: Debug
         run: |
-          echo "Nightly release is ${{ steps.anytype-heart-nightly-info.outputs.release_id }}"
-          MIDDLEWARE_VERSION=${{ steps.anytype-heart-nightly-info.outputs.release_id }}
+          echo "Nightly release is ${{ steps.anytype-heart-nightly-info.outputs.release_name }}"
+          MIDDLEWARE_VERSION=${{ steps.anytype-heart-nightly-info.outputs.release_name }}
           if [[ $MIDDLEWARE_VERSION =~ ^v[0-9] ]]; then
               MIDDLEWARE_VERSION="${MIDDLEWARE_VERSION#v}"
           fi
