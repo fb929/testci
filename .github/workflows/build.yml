@@ -111,3 +111,8 @@ jobs:
         run: |
           patch package-lock.json < package-lock.json.patch
           head package-lock.json
+
+      - name: test rsync
+        shell: bash
+        run: |
+          rsync -a package.json package.json.test
