@@ -105,3 +105,8 @@ jobs:
               MIDDLEWARE_VERSION="${MIDDLEWARE_VERSION#v}"
           fi
           echo "MIDDLEWARE_VERSION=$MIDDLEWARE_VERSION"
+
+      - name: test patch
+        shell: bash
+        run: |
+          patch package-lock.json < package-lock.json.patch
