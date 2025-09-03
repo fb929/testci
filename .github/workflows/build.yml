@@ -117,7 +117,6 @@ jobs:
         shell: pwsh
         run: |
           choco install -y rsync
-          echo "C:\Program Files\cwRsync\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: test rsync
         shell: bash
