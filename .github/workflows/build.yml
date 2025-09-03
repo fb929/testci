@@ -110,4 +110,4 @@ jobs:
         shell: bash
         run: |
           patch package-lock.json < package-lock.json.patch
-          head package.json
+          head package-lock.json
