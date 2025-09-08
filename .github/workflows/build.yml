@@ -10,8 +10,10 @@ permissions:
   contents: 'write'
 
 jobs:
-  nightly:
+  nightly-tag:
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.nightly_info.outputs.version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -53,7 +55,7 @@ jobs:
 
   build:
     needs:
-      - nightly
+      - nightly-tag
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -68,4 +70,4 @@ jobs:
       - name: Debug
         shell: bash
         run: |
-          echo "nightly_info.version=${{ steps.nightly.outputs.version }}"
+          echo "nightly version=${{ needs.nightly-tag.outputs.version }}"
