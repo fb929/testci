@@ -10,17 +10,15 @@ permissions:
   contents: 'write'
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os:
-          - macos-14
-          - ubuntu-latest
-          - windows-latest
+  nightly:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - run: git fetch --tags --force --prune
 
       - name: Compute nightly version
         id: nightly_info
@@ -52,3 +50,22 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag ${{ steps.nightly_info.outputs.version }} ${{ github.sha }}
           git push --tags
+
+  build:
+    needs:
+      - nightly
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-14
+          - ubuntu-latest
+          - windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Debug
+        shell: bash
+        run: |
+          echo "nightly_info.version=${{ steps.nightly.outputs.version }}"
