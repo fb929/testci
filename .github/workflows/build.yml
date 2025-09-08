@@ -13,7 +13,7 @@ jobs:
   nightly-tag:
     runs-on: ubuntu-latest
     outputs:
-      changed: ${{ steps.nightly_info.outputs.version }}
+      version: ${{ steps.nightly_info.outputs.version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
