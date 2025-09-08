@@ -31,7 +31,7 @@ jobs:
           PREFIX="v${BASE_VERSION}-nightly.${DATE}"
 
           # Get the number of existing tags for today
-          COUNT=$(gh api "/repos/${{ github.repository }}/git/matching-refs/tags/$PREFIX" --jq 'length')
+          COUNT=$(gh api "repos/${{ github.repository }}/git/matching-refs/tags/$PREFIX" --jq 'length')
           N=$((COUNT + 1))
 
           # Build the final version string
