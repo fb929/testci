@@ -21,6 +21,7 @@ jobs:
 
       - name: Compute nightly version
         id: nightly_info
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # required for gh CLI to authenticate
         run: |
@@ -38,5 +39,13 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Debug
+        shell: bash
         run: |
           echo "nightly_info.version=${{ steps.nightly_info.outputs.version }}"
+
+      - name: Create nightly tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.nightly_info.outputs.version }} ${{ github.sha }}
+          git push origin ${{ github.event.inputs.tag }}
