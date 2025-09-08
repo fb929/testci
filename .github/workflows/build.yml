@@ -48,4 +48,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag ${{ steps.nightly_info.outputs.version }} ${{ github.sha }}
-          git push origin ${{ github.event.inputs.tag }}
+          git push --tags
