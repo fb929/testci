@@ -66,8 +66,7 @@ jobs:
           N=$((COUNT + 1))
 
           # Build the final version string
-          TAG="${PREFIX}.${N}"
-          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "tag=${PREFIX}.${N}" >> "$GITHUB_OUTPUT"
 
           # application version
           echo "app_version=${BASE_VERSION}.${N}" >> "$GITHUB_OUTPUT"
