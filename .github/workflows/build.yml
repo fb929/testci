@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       changed: ${{ steps.diff_check.outputs.changed }}
+      last_tag: ${{ steps.diff_check.outputs.last_tag }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,14 +26,18 @@ jobs:
           if [ -z "$LAST_TAG" ]; then
             # no nightly tag found in history
             echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "last_tag=false" >> "$GITHUB_OUTPUT"
           elif git diff --quiet "${LAST_TAG}..HEAD"; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "last_tag=$LAST_TAG" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "last_tag=$LAST_TAG" >> "$GITHUB_OUTPUT"
           fi
       - name: debug
         run: |
           echo "changed: ${{ steps.diff_check.outputs.changed }}"
+          echo "last_tag: ${{ steps.diff_check.outputs.last_tag }}"
 
   nightly-tag:
     needs:
@@ -75,6 +80,7 @@ jobs:
         shell: bash
         run: |
           echo "nightly tag: ${{ steps.nightly_info.outputs.tag }}"
+          echo "nightly app_version_suffix: ${{ steps.nightly_info.outputs.app_version_suffix }}"
 
       - name: Create nightly tag
         run: |
@@ -83,9 +89,40 @@ jobs:
           git tag ${{ steps.nightly_info.outputs.tag }} ${{ github.sha }}
           git push --tags
 
+  changelog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.notes.outputs.body }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog via GitHub
+        id: notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY=$(gh api "repos/${GITHUB_REPOSITORY}/releases/generate-notes" \
+                  -f tag_name="${{ needs.nightly-tag.outputs.tag }}" \
+                  -f previous_tag_name="${{ needs.diff-check.outputs.last_tag }}" \
+                  --jq '.body')
+          {
+            echo 'body<<EOF'
+            printf '%s\n' "$BODY"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Debug
+        run: |
+          echo "----- CHANGELOG -----"
+          echo "${{ steps.notes.outputs.body }}"
   build:
     needs:
       - nightly-tag
+      - changelog
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -102,3 +139,4 @@ jobs:
         run: |
           echo "nightly tag=${{ needs.nightly-tag.outputs.tag }}"
           echo "nightly app_version_suffix=${{ needs.nightly-tag.outputs.app_version_suffix }}"
+          echo "nightly changelog=${{ needs.changelog.outputs.body }}"
