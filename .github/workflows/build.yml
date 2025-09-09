@@ -40,7 +40,8 @@ jobs:
     if: needs.diff-check.outputs.changed == 'true' # run only if there is a diff
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.nightly_info.outputs.version }}
+      tag: ${{ steps.nightly_info.outputs.tag }}
+      app_version: ${{ steps.nightly_info.outputs.app_version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -65,19 +66,22 @@ jobs:
           N=$((COUNT + 1))
 
           # Build the final version string
-          VERSION="${PREFIX}.${N}"
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          TAG="${PREFIX}.${N}"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+          # application version
+          echo "app_version=${BASE_VERSION}.${N}" >> "$GITHUB_OUTPUT"
 
       - name: Debug
         shell: bash
         run: |
-          echo "nightly_info.version=${{ steps.nightly_info.outputs.version }}"
+          echo "nightly tag: ${{ steps.nightly_info.outputs.tag }}"
 
       - name: Create nightly tag
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag ${{ steps.nightly_info.outputs.version }} ${{ github.sha }}
+          git tag ${{ steps.nightly_info.outputs.tag }} ${{ github.sha }}
           git push --tags
 
   build:
@@ -97,4 +101,5 @@ jobs:
       - name: Debug
         shell: bash
         run: |
-          echo "nightly version=${{ needs.nightly-tag.outputs.version }}"
+          echo "nightly tag=${{ needs.nightly-tag.outputs.tag }}"
+          echo "nightly app_version=${{ needs.nightly-tag.outputs.app_version }}"
