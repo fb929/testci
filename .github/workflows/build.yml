@@ -95,7 +95,7 @@ jobs:
       - nightly-tag
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.notes.outputs.body }}
+      body: ${{ steps.notes.outputs.body }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -128,6 +128,7 @@ jobs:
           echo "${{ steps.notes.outputs.body }}"
   build:
     needs:
+      - nightly-tag
       - changelog
     runs-on: ${{ matrix.os }}
     strategy:
