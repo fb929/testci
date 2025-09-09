@@ -147,3 +147,15 @@ jobs:
           echo "nightly tag=${{ needs.nightly-tag.outputs.tag }}"
           echo "nightly app_version_suffix=${{ needs.nightly-tag.outputs.app_version_suffix }}"
           echo "nightly changelog=${{ needs.changelog.outputs.body }}"
+
+  notify:
+    needs:
+      - build
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack (workflow result)
+        run: |
+          echo "status: ${{ (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) && 'failure' || 'success' }}"
+          echo "notification_title: ${{ (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) && '❌' || '✅' }} {workflow}"
+          echo "message_format: {emoji} *{workflow}* finished with {status_message}"
