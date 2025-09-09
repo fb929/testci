@@ -90,6 +90,8 @@ jobs:
           git push --tags
 
   changelog:
+    needs:
+      - nightly-tag
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -121,7 +123,6 @@ jobs:
           echo "${{ steps.notes.outputs.body }}"
   build:
     needs:
-      - nightly-tag
       - changelog
     runs-on: ${{ matrix.os }}
     strategy:
