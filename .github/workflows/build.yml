@@ -93,8 +93,6 @@ jobs:
     needs:
       - nightly-tag
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     outputs:
       tag: ${{ steps.notes.outputs.body }}
     steps:
@@ -107,10 +105,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          BODY=$(gh api "repos/${GITHUB_REPOSITORY}/releases/generate-notes" \
-                  -f tag_name="${{ needs.nightly-tag.outputs.tag }}" \
-                  -f previous_tag_name="${{ needs.diff-check.outputs.last_tag }}" \
-                  --jq '.body')
+          LAST="${{ needs.nightly-tag.outputs.last_tag }}"
+          TO="${{ needs.nightly-tag.outputs.tag }}"
+          if [[ -z "$LAST" || "$LAST" == "false" ]]; then
+            BODY="none"
+          else
+            BODY=$(gh api "repos/${GITHUB_REPOSITORY}/releases/generate-notes" \
+                    -f tag_name="$TO" \
+                    -f previous_tag_name="$LAST" \
+                    --jq '.body')
+          fi
           {
             echo 'body<<EOF'
             printf '%s\n' "$BODY"
