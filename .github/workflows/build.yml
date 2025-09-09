@@ -91,6 +91,7 @@ jobs:
 
   changelog:
     needs:
+      - diff-check
       - nightly-tag
     runs-on: ubuntu-latest
     outputs:
