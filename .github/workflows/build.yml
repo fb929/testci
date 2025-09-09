@@ -105,7 +105,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          LAST="${{ needs.nightly-tag.outputs.last_tag }}"
+          LAST="${{ needs.diff-check.outputs.last_tag }}"
           TO="${{ needs.nightly-tag.outputs.tag }}"
           if [[ -z "$LAST" || "$LAST" == "false" ]]; then
             BODY="none"
