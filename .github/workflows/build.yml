@@ -49,7 +49,7 @@ jobs:
           echo "changed: ${{ steps.diff_check.outputs.changed }}"
           echo "last_tag: ${{ steps.diff_check.outputs.last_tag }}"
 
-  nightly-tag:
+  nightly-settings:
     needs:
       - diff-check
     if: needs.diff-check.outputs.changed == 'true' # run only if there is a diff
@@ -65,13 +65,31 @@ jobs:
 
       - run: git fetch --tags --force --prune
 
-      - name: Compute nightly version
+      - name: Compute nightly version and settings
         id: nightly_info
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # required for gh CLI to authenticate
         run: |
           set -euo pipefail
+
+          # choice channel name {{
+          if [[ -z "${{ github.event.inputs.channel }}" ]]; then
+            # default value
+            CHANNEL=latest
+          else
+            CHANNEL="${{ github.event.inputs.channel }}"
+          fi
+          # }}
+
+          # version suffix {{
+          if [[ "$CHANNEL" == "latest" ]]; then
+            VERSION_SUFFIX=""
+          else
+            VERSION_SUFFIX="-${CHANNEL}"
+          fi
+          # }}
+
           DATE=$(date -u +'%Y%m%d')
           BASE_VERSION=$( jq -r '.version | split(".")[:2] | join(".")' package.json )
 
@@ -79,13 +97,14 @@ jobs:
           COUNT=$(gh api "repos/${{ github.repository }}/git/matching-refs/tags/v${BASE_VERSION}.${DATE}" --jq 'length')
           N=$((COUNT + 1))
 
-          APP_VERSION="${BASE_VERSION}.${DATE}${N}"
+          APP_VERSION="${BASE_VERSION}.${DATE}${N}${VERSION_SUFFIX}"
 
           # Build the final version string
           echo "tag=v${APP_VERSION}-nightly" >> "$GITHUB_OUTPUT"
 
           # application version
           echo "app_version=${APP_VERSION}" >> "$GITHUB_OUTPUT"
+
 
       - name: Debug
         shell: bash
@@ -103,7 +122,7 @@ jobs:
   changelog:
     needs:
       - diff-check
-      - nightly-tag
+      - nightly-settings
     runs-on: ubuntu-latest
     outputs:
       body: ${{ steps.notes.outputs.body }}
@@ -118,7 +137,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           LAST="${{ needs.diff-check.outputs.last_tag }}"
-          TO="${{ needs.nightly-tag.outputs.tag }}"
+          TO="${{ needs.nightly-settings.outputs.tag }}"
           if [[ -z "$LAST" || "$LAST" == "false" ]]; then
             BODY="none"
           else
@@ -139,7 +158,7 @@ jobs:
 
   build:
     needs:
-      - nightly-tag
+      - nightly-settings
       - changelog
     runs-on: ${{ matrix.os }}
     strategy:
@@ -155,42 +174,9 @@ jobs:
       - name: Debug
         shell: bash
         run: |
-          echo "nightly tag=${{ needs.nightly-tag.outputs.tag }}"
-          echo "nightly app_version=${{ needs.nightly-tag.outputs.app_version }}"
+          echo "nightly tag=${{ needs.nightly-settings.outputs.tag }}"
+          echo "nightly app_version=${{ needs.nightly-settings.outputs.app_version }}"
           echo "nightly changelog=${{ needs.changelog.outputs.body }}"
-
-      - name: Nightly mode env settings
-        shell: bash
-        run: |
-          # choice channel name {{
-          if [[ -z "${{ github.event.inputs.channel }}" ]]; then
-            # default value
-            CHANNEL=latest
-          else
-            CHANNEL="${{ github.event.inputs.channel }}"
-          fi
-          echo "CHANNEL=$CHANNEL" >> $GITHUB_ENV
-          # }}
-
-          # version suffix {{
-          if [[ "$CHANNEL" == "latest" ]]; then
-            VERSION_SUFFIX=""
-          else
-            VERSION_SUFFIX="-${CHANNEL}"
-          fi
-          echo "VERSION_SUFFIX=$VERSION_SUFFIX" >> $GITHUB_ENV
-          # }}
-
-          # choice s3 bucket for publishing {{
-          if [[ "$CHANNEL" == "beta" ]]; then
-            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET_BETA}}"
-          else
-            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET}}"
-          fi
-          echo "S3_BUCKET=$S3_BUCKET" >> $GITHUB_ENV
-          # }}
-
-          echo "MIDDLEWARE_VERSION=${{ steps.anytype-heart-nightly-info.outputs.release_name }}" >> $GITHUB_ENV
 
       - name: Nightly mode edit package.json
         shell: bash
@@ -199,7 +185,7 @@ jobs:
             --tab \
             '
             .name = "anytype-dev" |
-            .version = "${{ needs.nightly-tag.outputs.app_version }}${{ env.VERSION_SUFFIX }}" |
+            .version = "${{ needs.nightly-settings.outputs.app_version }}" |
             .description = "Anytype Nightly"
           ' package.json > tmp.json && mv tmp.json package.json
 
