@@ -22,7 +22,7 @@ jobs:
       - run: git fetch --tags --force --prune
       - id: diff_check
         run: |
-          LAST_TAG=$(git describe --tags --match 'v*-nightly.*' --abbrev=0 2>/dev/null || echo "")
+          LAST_TAG=$(git describe --tags --match 'v*-nightly' --abbrev=0 2>/dev/null || echo "")
           if [ -z "$LAST_TAG" ]; then
             # no nightly tag found in history
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.nightly_info.outputs.tag }}
-      app_version_suffix: ${{ steps.nightly_info.outputs.app_version_suffix }}
+      app_version: ${{ steps.nightly_info.outputs.app_version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -63,24 +63,25 @@ jobs:
         run: |
           set -euo pipefail
           DATE=$(date -u +'%Y%m%d')
-          BASE_VERSION=$( jq -r '.version' package.json | sed 's/-.*$//' )
-          PREFIX="v${BASE_VERSION}-nightly.${DATE}"
+          BASE_VERSION=$( jq -r '.version | split(".")[:2] | join(".")' package.json )
 
           # Get the number of existing tags for today
-          COUNT=$(gh api "repos/${{ github.repository }}/git/matching-refs/tags/$PREFIX" --jq 'length')
+          COUNT=$(gh api "repos/${{ github.repository }}/git/matching-refs/tags/v${BASE_VERSION}.${DATE}" --jq 'length')
           N=$((COUNT + 1))
 
-          # Build the final version string
-          echo "tag=${PREFIX}.${N}" >> "$GITHUB_OUTPUT"
+          APP_VERSION="${BASE_VERSION}.${DATE}${N}"
 
-          # application version suffix
-          echo "app_version_suffix=${DATE}.${N}" >> "$GITHUB_OUTPUT"
+          # Build the final version string
+          echo "tag=v${APP_VERSION}-nightly" >> "$GITHUB_OUTPUT"
+
+          # application version
+          echo "app_version=${APP_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Debug
         shell: bash
         run: |
           echo "nightly tag: ${{ steps.nightly_info.outputs.tag }}"
-          echo "nightly app_version_suffix: ${{ steps.nightly_info.outputs.app_version_suffix }}"
+          echo "nightly app_version: ${{ steps.nightly_info.outputs.app_version }}"
 
       - name: Create nightly tag
         run: |
@@ -124,8 +125,8 @@ jobs:
 
       - name: Debug
         run: |
-          echo "----- CHANGELOG -----"
           echo "${{ steps.notes.outputs.body }}"
+
   build:
     needs:
       - nightly-tag
@@ -145,7 +146,7 @@ jobs:
         shell: bash
         run: |
           echo "nightly tag=${{ needs.nightly-tag.outputs.tag }}"
-          echo "nightly app_version_suffix=${{ needs.nightly-tag.outputs.app_version_suffix }}"
+          echo "nightly app_version=${{ needs.nightly-tag.outputs.app_version }}"
           echo "nightly changelog=${{ needs.changelog.outputs.body }}"
 
       - name: Nightly mode edit package.json
@@ -155,7 +156,7 @@ jobs:
             --tab \
             '
             .name = "anytype-dev" |
-            .version |= ( ( . | sub("[-+].*"; "") ) + "-${{ env.CHANNEL }}+${{ needs.nightly-tag.outputs.app_version_suffix }}" ) |
+            .version = "${{ needs.nightly-tag.outputs.app_version }}" |
             .description = "Anytype Nightly"
           ' package.json > tmp.json && mv tmp.json package.json
 
