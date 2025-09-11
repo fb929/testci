@@ -1,9 +1,9 @@
 name: Build
 
 on:
-#  push:
-#    branches:
-#      - main
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       channel:
@@ -15,6 +15,15 @@ on:
           - latest
           - alpha
           - beta
+    inputs:
+      run-diff-check:
+        description: 'Run diff-check?'
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 permissions:
   contents: 'write'
@@ -34,15 +43,23 @@ jobs:
         run: |
           LAST_TAG=$(git describe --tags --match 'v*-nightly' --abbrev=0 2>/dev/null || echo "")
           if [ -z "$LAST_TAG" ]; then
-            # no nightly tag found in history
-            echo "changed=true" >> "$GITHUB_OUTPUT"
             echo "last_tag=false" >> "$GITHUB_OUTPUT"
-          elif git diff --quiet "${LAST_TAG}..HEAD"; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "last_tag=$LAST_TAG" >> "$GITHUB_OUTPUT"
           else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
             echo "last_tag=$LAST_TAG" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [[ "${{ github.event.inputs.run-diff-check || 'true' }}" == "true" ]]; then
+            if [ -z "$LAST_TAG" ]; then
+              # no nightly tag found in history
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+            elif git diff --quiet "${LAST_TAG}..HEAD"; then
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            # when disabled explicitly: always set changed=true
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
       - name: debug
         run: |
