@@ -57,6 +57,7 @@ jobs:
     outputs:
       tag: ${{ steps.nightly_info.outputs.tag }}
       app_version: ${{ steps.nightly_info.outputs.app_version }}
+      channel: ${{ steps.nightly_info.outputs.channel }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -80,6 +81,7 @@ jobs:
           else
             CHANNEL="${{ github.event.inputs.channel }}"
           fi
+          echo "channel=${CHANNEL}" >> "$GITHUB_OUTPUT"
           # }}
 
           # version suffix {{
@@ -111,6 +113,7 @@ jobs:
         run: |
           echo "nightly tag: ${{ steps.nightly_info.outputs.tag }}"
           echo "nightly app_version: ${{ steps.nightly_info.outputs.app_version }}"
+          echo "nightly channel: ${{ steps.nightly_info.outputs.channel }}"
 
       - name: Create nightly tag
         run: |
@@ -176,7 +179,22 @@ jobs:
         run: |
           echo "nightly tag=${{ needs.nightly-settings.outputs.tag }}"
           echo "nightly app_version=${{ needs.nightly-settings.outputs.app_version }}"
+          echo "nightly channel=${{ needs.nightly-settings.outputs.channel }}"
           echo "nightly changelog=${{ needs.changelog.outputs.body }}"
+
+      - name: Nightly mode env settings
+        shell: bash
+        run: |
+          # choice s3 bucket for publishing {{
+          if [[ "${{ needs.nightly-settings.outputs.channel }}" == "beta" ]]; then
+            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET_BETA}}"
+          else
+            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET}}"
+          fi
+          echo "S3_BUCKET=$S3_BUCKET" >> $GITHUB_ENV
+          # }}
+
+          echo "MIDDLEWARE_VERSION=${{ steps.anytype-heart-nightly-info.outputs.release_name }}" >> $GITHUB_ENV
 
       - name: Nightly mode edit package.json
         shell: bash
