@@ -15,7 +15,6 @@ on:
           - latest
           - alpha
           - beta
-    inputs:
       run-diff-check:
         description: 'Run diff-check?'
         required: true
