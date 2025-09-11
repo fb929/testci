@@ -5,6 +5,16 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      channel:
+        description: electron.builder channel (beta uses a different s3 bucket)
+        required: true
+        default: latest
+        type: choice
+        options:
+          - latest
+          - alpha
+          - beta
 
 permissions:
   contents: 'write'
@@ -149,6 +159,39 @@ jobs:
           echo "nightly app_version=${{ needs.nightly-tag.outputs.app_version }}"
           echo "nightly changelog=${{ needs.changelog.outputs.body }}"
 
+      - name: Nightly mode env settings
+        shell: bash
+        run: |
+          # choice channel name {{
+          if [[ -z "${{ github.event.inputs.channel }}" ]]; then
+            # default value
+            CHANNEL=latest
+          else
+            CHANNEL="${{ github.event.inputs.channel }}"
+          fi
+          echo "CHANNEL=$CHANNEL" >> $GITHUB_ENV
+          # }}
+
+          # version suffix {{
+          if [[ "$CHANNEL" == "latest" ]]; then
+            VERSION_SUFFIX=""
+          else
+            VERSION_SUFFIX="-${CHANNEL}"
+          fi
+          echo "VERSION_SUFFIX=$VERSION_SUFFIX" >> $GITHUB_ENV
+          # }}
+
+          # choice s3 bucket for publishing {{
+          if [[ "$CHANNEL" == "beta" ]]; then
+            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET_BETA}}"
+          else
+            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET}}"
+          fi
+          echo "S3_BUCKET=$S3_BUCKET" >> $GITHUB_ENV
+          # }}
+
+          echo "MIDDLEWARE_VERSION=${{ steps.anytype-heart-nightly-info.outputs.release_name }}" >> $GITHUB_ENV
+
       - name: Nightly mode edit package.json
         shell: bash
         run: |
@@ -156,7 +199,7 @@ jobs:
             --tab \
             '
             .name = "anytype-dev" |
-            .version = "${{ needs.nightly-tag.outputs.app_version }}" |
+            .version = "${{ needs.nightly-tag.outputs.app_version }}${{ env.VERSION_SUFFIX }}" |
             .description = "Anytype Nightly"
           ' package.json > tmp.json && mv tmp.json package.json
 
