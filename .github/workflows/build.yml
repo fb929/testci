@@ -71,9 +71,10 @@ jobs:
     if: needs.diff-check.outputs.changed == 'true' # run only if there is a diff
     runs-on: ubuntu-latest
     outputs:
+      channel: ${{ steps.nightly_info.outputs.channel }}
       tag: ${{ steps.nightly_info.outputs.tag }}
       app_version: ${{ steps.nightly_info.outputs.app_version }}
-      channel: ${{ steps.nightly_info.outputs.channel }}
+      s3_bucket: ${{ steps.nightly_info.outputs.s3_bucket }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -123,13 +124,22 @@ jobs:
           # application version
           echo "app_version=${APP_VERSION}" >> "$GITHUB_OUTPUT"
 
+          # choice s3 bucket for publishing
+          if [[ "${{ needs.nightly-settings.outputs.channel }}" == "beta" ]]; then
+            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET_BETA}}"
+          else
+            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET}}"
+          fi
+          echo "s3_bucket=$S3_BUCKET" >> $GITHUB_OUTPUT
+
 
       - name: Debug
         shell: bash
         run: |
+          echo "nightly channel: ${{ steps.nightly_info.outputs.channel }}"
           echo "nightly tag: ${{ steps.nightly_info.outputs.tag }}"
           echo "nightly app_version: ${{ steps.nightly_info.outputs.app_version }}"
-          echo "nightly channel: ${{ steps.nightly_info.outputs.channel }}"
+          echo "nightly s3_bucket: ${{ steps.nightly_info.outputs.s3_bucket }}"
 
       - name: Create nightly tag
         run: |
@@ -193,23 +203,16 @@ jobs:
       - name: Debug
         shell: bash
         run: |
+          echo "nightly channel=${{ needs.nightly-settings.outputs.channel }}"
           echo "nightly tag=${{ needs.nightly-settings.outputs.tag }}"
           echo "nightly app_version=${{ needs.nightly-settings.outputs.app_version }}"
-          echo "nightly channel=${{ needs.nightly-settings.outputs.channel }}"
+          echo "nightly s3_bucket=${{ needs.nightly-settings.outputs.s3_bucket }}"
           echo "nightly changelog=${{ needs.changelog.outputs.body }}"
 
       - name: Nightly mode env settings
         shell: bash
         run: |
-          # choice s3 bucket for publishing {{
-          if [[ "${{ needs.nightly-settings.outputs.channel }}" == "beta" ]]; then
-            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET_BETA}}"
-          else
-            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET}}"
-          fi
-          echo "S3_BUCKET=$S3_BUCKET" >> $GITHUB_ENV
-          # }}
-
+          echo "S3_BUCKET=${{ needs.nightly-settings.outputs.s3_bucket }}" >> $GITHUB_ENV
           echo "MIDDLEWARE_VERSION=${{ steps.anytype-heart-nightly-info.outputs.release_name }}" >> $GITHUB_ENV
 
       - name: Nightly mode edit package.json
@@ -257,13 +260,22 @@ jobs:
   notify:
     needs:
       - build
+      - nightly-settings
       - clean-nightly-tags
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
+      - name: Collect download URLs
+        id: urls
+        run: |
+          python .github/scripts/parse_all_latest_urls.py \
+            --base-url "https://${{ needs.nightly-settings.outputs.s3_bucket }}.s3.${{ secrets.NIGHTLY_AWS_REGION }}.amazonaws.com" \
+            --channel "${{ needs.nightly-settings.outputs.channel }}"
+
       - name: Notify Slack (workflow result)
         run: |
           echo "status: ${{ (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) && 'failure' || 'success' }}"
           echo "notification_title: ${{ (contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')) && '❌' || '✅' }} {workflow}"
           echo "message_format: {emoji} *{workflow}* finished with {status_message}"
+          echo "${{ steps.urls.outputs.message }}"
 
