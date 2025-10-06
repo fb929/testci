@@ -103,7 +103,9 @@ def main():
     if gha:
         try:
             with open(gha, "a", encoding="utf-8") as f:
-                f.write(f"message={message}")
+                f.write("message<<EOF\n")
+                f.write(message + "\n")
+                f.write("EOF\n")
         except Exception as e:
             print(f"[WARN] failed to write GitHub outputs: {e}", file=sys.stderr)
 
