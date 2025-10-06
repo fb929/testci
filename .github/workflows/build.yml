@@ -74,7 +74,6 @@ jobs:
       channel: ${{ steps.nightly_info.outputs.channel }}
       tag: ${{ steps.nightly_info.outputs.tag }}
       app_version: ${{ steps.nightly_info.outputs.app_version }}
-      s3_bucket: ${{ steps.nightly_info.outputs.s3_bucket }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -91,7 +90,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          # choice channel name {{
+          # choice channel name
           if [[ -z "${{ github.event.inputs.channel }}" ]]; then
             # default value
             CHANNEL=latest
@@ -99,15 +98,13 @@ jobs:
             CHANNEL="${{ github.event.inputs.channel }}"
           fi
           echo "channel=${CHANNEL}" >> "$GITHUB_OUTPUT"
-          # }}
 
-          # version suffix {{
+          # version suffix
           if [[ "$CHANNEL" == "latest" ]]; then
             VERSION_SUFFIX=""
           else
             VERSION_SUFFIX="-${CHANNEL}"
           fi
-          # }}
 
           DATE=$(date -u +'%Y%m%d')
           BASE_VERSION=$( jq -r '.version | split(".")[:2] | join(".")' package.json )
@@ -124,22 +121,12 @@ jobs:
           # application version
           echo "app_version=${APP_VERSION}" >> "$GITHUB_OUTPUT"
 
-          # choice s3 bucket for publishing
-          if [[ $CHANNEL == "beta" ]]; then
-            S3_BUCKET="${{ secrets.NIGHTLY_AWS_S3_BUCKET_BETA }}"
-          else
-            S3_BUCKET="${{ secrets.NIGHTLY_AWS_S3_BUCKET}} "
-          fi
-          echo "s3_bucket=$S3_BUCKET" >> "$GITHUB_OUTPUT"
-
-
       - name: Debug
         shell: bash
         run: |
           echo "nightly channel: ${{ steps.nightly_info.outputs.channel }}"
           echo "nightly tag: ${{ steps.nightly_info.outputs.tag }}"
           echo "nightly app_version: ${{ steps.nightly_info.outputs.app_version }}"
-          echo "nightly s3_bucket: ${{ steps.nightly_info.outputs.s3_bucket }}"
 
       - name: Create nightly tag
         run: |
@@ -206,13 +193,19 @@ jobs:
           echo "nightly channel=${{ needs.nightly-settings.outputs.channel }}"
           echo "nightly tag=${{ needs.nightly-settings.outputs.tag }}"
           echo "nightly app_version=${{ needs.nightly-settings.outputs.app_version }}"
-          echo "nightly s3_bucket=${{ needs.nightly-settings.outputs.s3_bucket }}"
           echo "nightly changelog=${{ needs.changelog.outputs.body }}"
 
       - name: Nightly mode env settings
         shell: bash
         run: |
-          echo "S3_BUCKET=${{ needs.nightly-settings.outputs.s3_bucket }}" >> $GITHUB_ENV
+          # choice s3 bucket for publishing
+          if [[ "${{ needs.nightly-settings.outputs.channel }}" == "beta" ]]; then
+            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET_BETA}}"
+          else
+            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET}}"
+          fi
+          echo "S3_BUCKET=$S3_BUCKET" >> $GITHUB_ENV
+
           echo "MIDDLEWARE_VERSION=${{ steps.anytype-heart-nightly-info.outputs.release_name }}" >> $GITHUB_ENV
 
       - name: Nightly mode edit package.json
@@ -242,9 +235,7 @@ jobs:
 
       - run: git fetch --tags --force --prune
 
-      - name: Compute nightly version and settings
-        id: nightly_info
-        shell: bash
+      - name: Clean old nightly tags
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # required for gh CLI to authenticate
         run: |
@@ -270,11 +261,22 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Nightly mode env settings
+        shell: bash
+        run: |
+          # choice s3 bucket for publishing
+          if [[ "${{ needs.nightly-settings.outputs.channel }}" == "beta" ]]; then
+            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET_BETA}}"
+          else
+            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET}}"
+          fi
+          echo "S3_BUCKET=$S3_BUCKET" >> $GITHUB_ENV
+
       - name: Collect download URLs
         id: urls
         run: |
           python .github/scripts/parse_all_latest_urls.py \
-            --base-url "https://${{ needs.nightly-settings.outputs.s3_bucket }}.s3.${{ secrets.NIGHTLY_AWS_REGION }}.amazonaws.com" \
+            --base-url "https://${{ env.S3_BUCKET }}.s3.${{ secrets.NIGHTLY_AWS_REGION }}.amazonaws.com" \
             --channel "${{ needs.nightly-settings.outputs.channel }}"
 
       - name: Notify Slack (workflow result)
