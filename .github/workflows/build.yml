@@ -125,12 +125,12 @@ jobs:
           echo "app_version=${APP_VERSION}" >> "$GITHUB_OUTPUT"
 
           # choice s3 bucket for publishing
-          if [[ "${{ needs.nightly-settings.outputs.channel }}" == "beta" ]]; then
-            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET_BETA}}"
+          if [[ $CHANNEL == "beta" ]]; then
+            S3_BUCKET="${{ secrets.NIGHTLY_AWS_S3_BUCKET_BETA }}"
           else
-            S3_BUCKET="${{secrets.NIGHTLY_AWS_S3_BUCKET}}"
+            S3_BUCKET="${{ secrets.NIGHTLY_AWS_S3_BUCKET}} "
           fi
-          echo "s3_bucket=$S3_BUCKET" >> $GITHUB_OUTPUT
+          echo "s3_bucket=$S3_BUCKET" >> "$GITHUB_OUTPUT"
 
 
       - name: Debug
