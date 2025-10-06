@@ -96,7 +96,7 @@ def main():
         for u in urls:
             outputs.append(f"- {u}")
         outputs.append("")  # empty line between sections
-    message = "\n".join(lines).rstrip()
+    message = "\n".join(outputs).rstrip()
 
     # GitHub Actions outputs
     gha = os.environ.get("GITHUB_OUTPUT")
