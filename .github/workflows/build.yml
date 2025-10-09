@@ -285,7 +285,7 @@ jobs:
           curl -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.ANYTYPE_HEART_TRIGGER_TOKEN }}" \
-            https://api.github.com/repos/anyproto/anytype-heart/actions/workflows/nightly.yml/dispatches \
+            https://api.github.com/repos/anyproto/anytype-ts/actions/workflows/nightly.yml/dispatches \
             -d '{"ref":"develop","inputs":{"run-diff-check":"false"}}'
 
       - name: Notify Slack (workflow result)
