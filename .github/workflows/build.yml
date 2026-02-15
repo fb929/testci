@@ -19,6 +19,16 @@ jobs:
           - ubuntu-22.04
           - windows-latest
 
+    services:
+      redis:
+        image: redis/redis-stack-server:latest
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v1
