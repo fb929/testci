@@ -56,3 +56,7 @@ jobs:
           # Build the final version string
           VERSION="${PREFIX}.${N}"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: debug
+        run: |
+          echo "version: ${{ steps.nightly_info.outputs.version }}"
