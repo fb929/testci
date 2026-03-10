@@ -15,23 +15,34 @@ jobs:
     strategy:
       matrix:
         os:
-          #- macos-14
-          - ubuntu-22.04
+          #- macos-15
+          #- ubuntu-22.04
+          - ubuntu-latest
           #- windows-latest
 
-    services:
-      redis:
-        image: redis/redis-stack-server:latest
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
 
-      - name: test redis
-        run: redis-cli ping
+      - name: Compute nightly version
+        id: nightly_info
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # required for gh CLI to authenticate
+        run: |
+          set -euo pipefail
+          DATE=$(date -u +'%Y%m%d')
+          LATEST_RELEASE=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | grep -v '-' | sort -V | tail -1)
+          MAJOR=$(echo $LATEST_RELEASE | cut -d. -f1)
+          MINOR=$(echo $LATEST_RELEASE | cut -d. -f2)
+          PATCH=$(echo $LATEST_RELEASE | cut -d. -f3)
+          NEXT_PATCH=$((PATCH + 1))
+          BASE="${MAJOR}.${MINOR}.${NEXT_PATCH}"
+          PREFIX="v${{ github.event.inputs.nightly-base-version || $BASE }}-nightly.${DATE}"
+
+          # Get the number of existing tags for today
+          COUNT=$(gh api "/repos/${{ github.repository }}/git/matching-refs/tags/$PREFIX" --jq 'length')
+          N=$((COUNT + 1))
+
+          # Build the final version string
+          VERSION="${PREFIX}.${N}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
