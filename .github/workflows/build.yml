@@ -11,6 +11,8 @@ on:
         required: false
 
 permissions:
+  actions: 'write'
+  packages: 'write'
   contents: 'write'
 
 jobs:
