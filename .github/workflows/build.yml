@@ -47,7 +47,7 @@ jobs:
           PATCH=$(echo $LATEST_RELEASE | cut -d. -f3)
           NEXT_PATCH=$((PATCH + 1))
           BASE="${INPUT_BASE:-${MAJOR}.${MINOR}.${NEXT_PATCH}}"
-          PREFIX="v${BASE}-nightly.${DATE}"
+          PREFIX="${BASE}-nightly.${DATE}"
 
           # Get the number of existing tags for today
           COUNT=$(gh api "/repos/${{ github.repository }}/git/matching-refs/tags/$PREFIX" --jq 'length')
