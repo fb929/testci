@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      nightly-base-version:
+        description: 'Nightly builds base version'
+        required: false
 
 permissions:
   contents: 'write'
@@ -28,6 +33,7 @@ jobs:
         id: nightly_info
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # required for gh CLI to authenticate
+          INPUT_BASE: ${{ github.event.inputs.nightly-base-version }}
         run: |
           set -euo pipefail
           DATE=$(date -u +'%Y%m%d')
@@ -36,8 +42,8 @@ jobs:
           MINOR=$(echo $LATEST_RELEASE | cut -d. -f2)
           PATCH=$(echo $LATEST_RELEASE | cut -d. -f3)
           NEXT_PATCH=$((PATCH + 1))
-          BASE="${MAJOR}.${MINOR}.${NEXT_PATCH}"
-          PREFIX="v${{ github.event.inputs.nightly-base-version || $BASE }}-nightly.${DATE}"
+          BASE="${INPUT_BASE:-${MAJOR}.${MINOR}.${NEXT_PATCH}}"
+          PREFIX="v${BASE}-nightly.${DATE}"
 
           # Get the number of existing tags for today
           COUNT=$(gh api "/repos/${{ github.repository }}/git/matching-refs/tags/$PREFIX" --jq 'length')
