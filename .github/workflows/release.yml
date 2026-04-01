@@ -58,4 +58,4 @@ jobs:
             -H "Authorization: token ${{ secrets.TESTCI_PAT }}" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/fb929/testci1/dispatches \
-            -d "{\"event_type\": \"trigger-from-heart\", \"client_payload\": {\"version\": \"${{ steps.release_info.outputs.tag_name }}\"}}"
+            -d "{\"event_type\": \"trigger-from-heart\", \"client_payload\": {\"tag\": \"${{ steps.release_info.outputs.tag_name }}\"}}"
