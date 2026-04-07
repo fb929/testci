@@ -22,41 +22,50 @@ jobs:
     strategy:
       matrix:
         os:
-          #- macos-15
+          - macos-15
           #- ubuntu-22.04
-          - ubuntu-latest
+          #- ubuntu-latest
           #- windows-latest
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Compute nightly version
-        id: nightly_info
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # required for gh CLI to authenticate
-          INPUT_BASE: ${{ github.event.inputs.nightly-base-version }}
+      - name: Install mingw
         run: |
-          set -euo pipefail
-          DATE=$(date -u +'%Y%m%d')
-          LATEST_RELEASE=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | grep -v '-' | sort -V | tail -1)
-          MAJOR=$(echo $LATEST_RELEASE | cut -d. -f1)
-          MINOR=$(echo $LATEST_RELEASE | cut -d. -f2)
-          PATCH=$(echo $LATEST_RELEASE | cut -d. -f3)
-          NEXT_PATCH=$((PATCH + 1))
-          BASE="${INPUT_BASE:-${MAJOR}.${MINOR}.${NEXT_PATCH}}"
-          PREFIX="${BASE}-nightly.${DATE}"
+          brew update
+          brew install mingw-w64
 
-          # Get the number of existing tags for today
-          COUNT=$(gh api "/repos/${{ github.repository }}/git/matching-refs/tags/$PREFIX" --jq 'length')
-          N=$((COUNT + 1))
-
-          # Build the final version string
-          VERSION="${PREFIX}.${N}"
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-
-      - name: debug
+      - name: Build Windows binary
         run: |
-          echo "version: ${{ steps.nightly_info.outputs.version }}"
+          x86_64-w64-mingw32-gcc hello.c -o hello.exe
+
+#      - name: Compute nightly version
+#        id: nightly_info
+#        env:
+#          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # required for gh CLI to authenticate
+#          INPUT_BASE: ${{ github.event.inputs.nightly-base-version }}
+#        run: |
+#          set -euo pipefail
+#          DATE=$(date -u +'%Y%m%d')
+#          LATEST_RELEASE=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | grep -v '-' | sort -V | tail -1)
+#          MAJOR=$(echo $LATEST_RELEASE | cut -d. -f1)
+#          MINOR=$(echo $LATEST_RELEASE | cut -d. -f2)
+#          PATCH=$(echo $LATEST_RELEASE | cut -d. -f3)
+#          NEXT_PATCH=$((PATCH + 1))
+#          BASE="${INPUT_BASE:-${MAJOR}.${MINOR}.${NEXT_PATCH}}"
+#          PREFIX="${BASE}-nightly.${DATE}"
+#
+#          # Get the number of existing tags for today
+#          COUNT=$(gh api "/repos/${{ github.repository }}/git/matching-refs/tags/$PREFIX" --jq 'length')
+#          N=$((COUNT + 1))
+#
+#          # Build the final version string
+#          VERSION="${PREFIX}.${N}"
+#          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+#
+#      - name: debug
+#        run: |
+#          echo "version: ${{ steps.nightly_info.outputs.version }}"
